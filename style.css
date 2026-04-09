@@ -1,0 +1,129 @@
+/* Grundfarben im Steam-Look */
+:root {
+    --hintergrund: #171a21;
+    --karte-bg: #202329;
+    --text-hell: #c7d5e0;
+    --accent: #66c0f4;
+    --demo-farbe: #4caf50;
+    --playtest-farbe: #ff9800;
+}
+
+/* Grundeinstellungen für die Seite */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--hintergrund);
+    color: var(--text-hell);
+    margin: 0;
+    padding: 20px;
+}
+
+/* Der obere Bereich mit Suche und Filtern */
+.header-section {
+    max-width: 1200px;
+    margin: 0 auto 30px auto;
+}
+
+h1 {
+    color: white;
+}
+
+.controls-container {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap; /* Bricht um, wenn der Bildschirm (Handy) zu schmal wird */
+    margin-top: 15px;
+}
+
+/* Aussehen der Suchfelder und Dropdowns */
+input[type="text"], select {
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #323f53;
+    background-color: #2a475e;
+    color: white;
+    font-size: 16px;
+    outline: none;
+}
+
+input[type="text"]:focus, select:focus {
+    border-color: var(--accent);
+}
+
+/* Das Raster für die Spiele-Karten */
+.spiele-grid {
+    display: grid;
+    /* Macht die Karten responsiv: Mindestens 280px breit, sonst füllen sie den Platz */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.lade-text {
+    text-align: center;
+    font-size: 1.2em;
+    color: var(--accent);
+}
+
+/* Aussehen einer einzelnen Spiel-Karte */
+.spiel-karte {
+    background-color: var(--karte-bg);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+}
+
+.spiel-karte img {
+    width: 100%;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+.spiel-karte h3 {
+    margin: 0 0 10px 0;
+    color: white;
+}
+
+.spiel-karte p {
+    font-size: 0.9em;
+    margin: 5px 0;
+    color: #8f98a0;
+}
+
+/* Etiketten für Demo und Playtest */
+.badges {
+    margin: 15px 0;
+    display: flex;
+    gap: 10px;
+}
+
+.badge {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: bold;
+    color: white;
+}
+
+.badge.demo {
+    background-color: var(--demo-farbe);
+}
+
+.badge.playtest {
+    background-color: var(--playtest-farbe);
+}
+
+/* Die Checkbox für den Playtest */
+.playtest-label {
+    margin-top: auto; /* Drückt die Checkbox ans untere Ende der Karte */
+    background-color: #1b2838;
+    padding: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
