@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meine Ultimate Steam Wunschliste</title>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="header-section">
+        <h1>Meine Wunschliste</h1>
+        
+        <div class="controls-container">
+            <input type="text" id="suchfeld" placeholder="Spiel suchen..." />
+            
+            <select id="kategorie-filter">
+                <option value="alle">Alle Kategorien</option>
+                <option value="Action">Action</option>
+                <option value="RPG">RPG</option>
+                <option value="Strategie">Strategie</option>
+                <option value="Indie">Indie</option>
+                <option value="Survival">Survival</option>
+            </select>
+
+            <select id="sortierung">
+                <option value="standard">Standardsortierung</option>
+                <option value="release-aufsteigend">Release (Früheste zuerst)</option>
+                <option value="release-absteigend">Release (Späteste zuerst)</option>
+                <option value="preis-aufsteigend">Preis (Günstigste zuerst)</option>
+                <option value="preis-absteigend">Preis (Teuerste zuerst)</option>
+            </select>
+        </div>
+    </header>
+
+    <main>
+        <div id="spiele-container" class="spiele-grid">
+            <p class="lade-text">Spiele werden geladen...</p>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+
+</body>
+</html>
