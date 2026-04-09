@@ -1,57 +1,64 @@
-// 1. TRAGE HIER DEINE EIGENE STEAM-ID EIN (die lange 64-Bit Nummer)
+// 1. TRAGE HIER DEINE EIGENE STEAM-ID EIN
 const STEAM_ID = '76561198133148029'; 
 
-// Wir nutzen einen Proxy, um die Sicherheitsblockade (CORS) des Browsers zu umgehen
-const PROXY_URL = 'https://api.allorigins.win/get?url=';
+// Wir nutzen einen alternativen, oft schnelleren Proxy
+const PROXY_URL = 'https://corsproxy.io/?';
 const STEAM_WUNSCHLISTE_URL = encodeURIComponent(`https://store.steampowered.com/wishlist/profiles/${STEAM_ID}/wishlistdata/`);
 
-// Hauptfunktion zum Laden der Daten
 async function ladeWunschliste() {
     const container = document.getElementById('spiele-container');
     container.innerHTML = '<p class="lade-text">Lade echte Daten von Steam...</p>';
 
     try {
-        // Anfrage an Steam (über den Proxy) senden
         const response = await fetch(PROXY_URL + STEAM_WUNSCHLISTE_URL);
         
-        if (!response.ok) throw new Error('Netzwerkfehler');
+        if (!response.ok) {
+            throw new Error(`Proxy-Fehler: Server antwortete mit Status ${response.status}`);
+        }
         
-        const proxyData = await response.json();
-        const steamData = JSON.parse(proxyData.contents); // Der Proxy packt die Steam-Daten in "contents"
+        // corsproxy gibt uns die Daten direkt, wir müssen sie nicht extra entpacken
+        const steamData = await response.json();
 
-        // Wenn Steam einen Fehler zurückgibt (z.B. Profil ist privat)
+        // Check 1: Hat Steam einen Fehlercode gesendet? (Meistens wegen privatem Profil)
         if (steamData.success === 2) {
-             container.innerHTML = '<p class="lade-text" style="color: #ff4a4a;">Fehler: Dein Steam-Profil ist privat oder die Steam-ID ist falsch.</p>';
+             container.innerHTML = `<p class="lade-text" style="color: #ff4a4a;">
+                <b>Zugriff verweigert:</b> Dein Steam-Profil oder deine "Spieldetails" sind nicht auf Öffentlich gestellt.
+             </p>`;
              return;
         }
 
-        // Steam liefert uns ein seltsames Objekt. Wir wandeln es in ein sauberes Array um, damit wir besser damit arbeiten können.
+        // Check 2: Ist die Wunschliste komplett leer?
+        if (Array.isArray(steamData) && steamData.length === 0) {
+            container.innerHTML = '<p class="lade-text">Deine Wunschliste ist leer.</p>';
+            return;
+        }
+
+        // Daten umwandeln
         const spieleArray = Object.entries(steamData).map(([appId, daten]) => {
-            return {
-                id: appId,
-                ...daten
-            };
+            return { id: appId, ...daten };
         });
 
         // Spiele anzeigen
         spieleAnzeigen(spieleArray);
 
     } catch (error) {
-        console.error('Fehler beim Laden:', error);
-        container.innerHTML = '<p class="lade-text" style="color: #ff4a4a;">Fehler beim Laden der Steam-Daten.</p>';
+        // Jetzt zeigen wir den echten technischen Fehler auf der Seite an!
+        console.error('Detaillierter Fehler:', error);
+        container.innerHTML = `<div class="lade-text" style="color: #ff4a4a;">
+            <p><b>Fehler beim Laden der Steam-Daten.</b></p>
+            <p style="font-size: 0.8em; color: #8f98a0;">Technischer Grund: ${error.message}</p>
+            <p style="font-size: 0.8em; color: #8f98a0;">Tipp: Drücke F12 und schaue in die "Console" für mehr Details.</p>
+        </div>`;
     }
 }
 
-// Funktion um die Spiele ins HTML zu zeichnen
 function spieleAnzeigen(spieleArray) {
     const container = document.getElementById('spiele-container');
-    container.innerHTML = ''; // Lade-Text entfernen
+    container.innerHTML = ''; 
 
     spieleArray.forEach(spiel => {
-        // Prüfen, ob Playtest lokal abgehakt ist
         const istRegistriert = localStorage.getItem(`playtest_${spiel.id}`) === 'true';
 
-        // Preis sicher auslesen (Steam liefert den manchmal in Cent, manchmal gar nicht)
         let preisText = "Preis unbekannt";
         if (spiel.subs && spiel.subs.length > 0 && spiel.subs[0].price) {
             preisText = (spiel.subs[0].price / 100).toFixed(2) + " €";
@@ -59,7 +66,6 @@ function spieleAnzeigen(spieleArray) {
             preisText = "Kostenlos";
         }
 
-        // Karte erstellen
         const karte = document.createElement('div');
         karte.className = 'spiel-karte';
 
@@ -78,7 +84,6 @@ function spieleAnzeigen(spieleArray) {
         container.appendChild(karte);
     });
 
-    // Event-Listener für die Checkboxen (Speichern im Browser)
     document.querySelectorAll('.playtest-check').forEach(checkbox => {
         checkbox.addEventListener('change', (e) => {
             const spielId = e.target.getAttribute('data-id');
@@ -87,5 +92,4 @@ function spieleAnzeigen(spieleArray) {
     });
 }
 
-// Skript starten, sobald die Datei geladen ist
 ladeWunschliste();
