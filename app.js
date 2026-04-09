@@ -1,34 +1,38 @@
-// 1. TRAGE HIER DEINE EIGENE STEAM-ID EIN
+// 1. TRAGE HIER DEINE 17-STELLIGE STEAM-ID EIN
 const STEAM_ID = '76561198133148029'; 
 
-// Wir nutzen einen alternativen, oft schnelleren Proxy
 const PROXY_URL = 'https://corsproxy.io/?';
-const STEAM_WUNSCHLISTE_URL = encodeURIComponent(`https://store.steampowered.com/wishlist/profiles/${STEAM_ID}/wishlistdata/`);
+// ACHTUNG: Das "/wishlistdata/" am Ende ist jetzt weg! Wir rufen die ECHTE Webseite auf.
+const STEAM_WUNSCHLISTE_URL = encodeURIComponent(`https://store.steampowered.com/wishlist/profiles/${STEAM_ID}/`);
 
 async function ladeWunschliste() {
     const container = document.getElementById('spiele-container');
-    container.innerHTML = '<p class="lade-text">Lade echte Daten von Steam...</p>';
+    container.innerHTML = '<p class="lade-text">Lese Wunschliste aus dem Quellcode (Neues Verfahren)...</p>';
 
     try {
         const response = await fetch(PROXY_URL + STEAM_WUNSCHLISTE_URL);
         
         if (!response.ok) {
-            throw new Error(`Proxy-Fehler: Server antwortete mit Status ${response.status}`);
+            throw new Error(`Proxy-Fehler: Status ${response.status}`);
         }
         
-        // corsproxy gibt uns die Daten direkt, wir müssen sie nicht extra entpacken
-        const steamData = await response.json();
+        // Wir holen den gesamten HTML-Text der Steam-Seite
+        const html = await response.text();
 
-        // Check 1: Hat Steam einen Fehlercode gesendet? (Meistens wegen privatem Profil)
-        if (steamData.success === 2) {
+        // 🕵️‍♂️ Regex-Suche: Wir zerschneiden den HTML-Code und suchen exakt das versteckte Datenpaket
+        const match = html.match(/var g_rgAppInfo = (\{.*?\});\s*var/s);
+        
+        if (!match || match.length < 2) {
              container.innerHTML = `<p class="lade-text" style="color: #ff4a4a;">
-                <b>Zugriff verweigert:</b> Dein Steam-Profil oder deine "Spieldetails" sind nicht auf Öffentlich gestellt.
+                <b>Fehler:</b> Konnte die Spieldaten im Quellcode nicht finden. Entweder ist die Wunschliste komplett leer, oder das Profil wird noch blockiert.
              </p>`;
              return;
         }
 
-        // Check 2: Ist die Wunschliste komplett leer?
-        if (Array.isArray(steamData) && steamData.length === 0) {
+        // Wir verwandeln den herausgeschnittenen Text in ein sauberes JavaScript-Objekt
+        const steamData = JSON.parse(match[1]);
+
+        if (Object.keys(steamData).length === 0) {
             container.innerHTML = '<p class="lade-text">Deine Wunschliste ist leer.</p>';
             return;
         }
@@ -38,16 +42,14 @@ async function ladeWunschliste() {
             return { id: appId, ...daten };
         });
 
-        // Spiele anzeigen
+        // Spiele endlich anzeigen!
         spieleAnzeigen(spieleArray);
 
     } catch (error) {
-        // Jetzt zeigen wir den echten technischen Fehler auf der Seite an!
         console.error('Detaillierter Fehler:', error);
         container.innerHTML = `<div class="lade-text" style="color: #ff4a4a;">
-            <p><b>Fehler beim Laden der Steam-Daten.</b></p>
+            <p><b>Fehler beim Laden.</b></p>
             <p style="font-size: 0.8em; color: #8f98a0;">Technischer Grund: ${error.message}</p>
-            <p style="font-size: 0.8em; color: #8f98a0;">Tipp: Drücke F12 und schaue in die "Console" für mehr Details.</p>
         </div>`;
     }
 }
@@ -59,6 +61,7 @@ function spieleAnzeigen(spieleArray) {
     spieleArray.forEach(spiel => {
         const istRegistriert = localStorage.getItem(`playtest_${spiel.id}`) === 'true';
 
+        // Preis sicher auslesen
         let preisText = "Preis unbekannt";
         if (spiel.subs && spiel.subs.length > 0 && spiel.subs[0].price) {
             preisText = (spiel.subs[0].price / 100).toFixed(2) + " €";
